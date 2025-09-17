@@ -12,16 +12,18 @@ export function parseXML<T = unknown>(filePath: string): T {
     }
 
     // Validate XML before parsing
-    const valid = XMLValidator.validate(text);
-    if (valid !== true) {
-      throw new Error(
-        `Invalid XML at ${filePath}: ${(valid as any).err?.msg ?? "Unknown error"}`
-      );
+    const validationResult = XMLValidator.validate(text);
+    if (validationResult !== true) {
+      const errorMessage =
+        typeof validationResult === "object" && "err" in validationResult
+          ? validationResult.err?.msg ?? "Unknown error"
+          : "Unknown error";
+      throw new Error(`Invalid XML at ${filePath}: ${errorMessage}`);
     }
 
     const parser = new XMLParser({
-      ignoreAttributes: false, // keep attributes like <tag attr="value">
-      attributeNamePrefix: "@", // attributes will have '@' prefix
+      ignoreAttributes: false,
+      attributeNamePrefix: "@",
       allowBooleanAttributes: true,
       parseAttributeValue: true,
       trimValues: true,
@@ -29,8 +31,13 @@ export function parseXML<T = unknown>(filePath: string): T {
 
     const result = parser.parse(text);
     return result as T;
-  } catch (err: any) {
-    logger.error("XML parse failed for %s: %o", filePath, err);
-    throw new Error(`XML parse failed for ${filePath}: ${err.message}`);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      logger.error("XML parse failed for %s: %o", filePath, err);
+      throw new Error(`XML parse failed for ${filePath}: ${err.message}`);
+    } else {
+      logger.error("XML parse failed for %s: Unknown error", filePath);
+      throw new Error(`XML parse failed for ${filePath}: Unknown error`);
+    }
   }
 }
