@@ -1,14 +1,53 @@
-import path from "path";
-import { parseCSV } from "./utils/csvParser";
-import { parseJSON } from "./utils/jsonParser";
-import { parseXML } from "./utils/xmlParser";
+import { CakeBuilder } from "./model/builders/cake.builder";
+import { BookBuilder } from "./model/builders/book.builder";
+import { ToyBuilder } from "./model/builders/toy.builder";
 
-async function demo() {
-  const base = (f: string) => path.join(__dirname, "data", f);
+function main() {
+  // Build a Cake
+  const cake = new CakeBuilder()
+    .setType("Birthday")
+    .setFlavor("Vanilla")
+    .setFilling("Strawberry")
+    .setSize("Medium")
+    .setLayers("2")
+    .setFrostingType("Buttercream")
+    .setFrostingFlavor("Vanilla")
+    .setDecorationType("Sprinkles")
+    .setDecorationColor("Rainbow")
+    .setCustomMessage("Happy Birthday!")
+    .setShape("Round")
+    .setAllergies("None")
+    .setSpecialIngredients("None")
+    .setPackagingType("Box")
+    .build();
 
-  console.log("CSV:", await parseCSV(base("cake orders.csv")));
-  console.log("JSON:", parseJSON(base("book orders.json")));
-  console.log("XML:", parseXML(base("toy orders.xml")));
+  console.log("Cake built:", cake);
+
+  // Build a Book
+  const book = new BookBuilder()
+    .setTitle("Dune")
+    .setAuthor("Frank Herbert")
+    .setGenre("Sci-Fi")
+    .setFormat("Hardcover")
+    .setLanguage("EN")
+    .setPublisher("Chilton")
+    .setSpecialEdition("None")
+    .setPackaging("Shrinkwrap")
+    .build();
+
+  console.log("Book built:", book);
+
+  // Build a Toy
+  const toy = new ToyBuilder()
+    .setType("Robot")
+    .setAgeGroup("6+")
+    .setBrand("RoboCo")
+    .setMaterial("Plastic")
+    .setBatteryRequired("Yes")
+    .setEducational("STEM")
+    .build();
+
+  console.log("Toy built:", toy);
 }
 
-demo().catch(console.error);
+main();
