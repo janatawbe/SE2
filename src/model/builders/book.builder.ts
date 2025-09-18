@@ -11,6 +11,10 @@ export class BookBuilder {
   private specialEdition!: string;
   private packaging!: string;
 
+  public static newBuilder(): BookBuilder {
+    return new BookBuilder();
+  }
+
   setTitle(title: string): BookBuilder { this.title = title; return this; }
   setAuthor(author: string): BookBuilder { this.author = author; return this; }
   setGenre(genre: string): BookBuilder { this.genre = genre; return this; }
@@ -33,7 +37,7 @@ export class BookBuilder {
     ];
 
     for (const [name, value] of required) {
-      if (value === undefined || value === null || value === "") {
+      if (value === undefined || value === null) {
         logger.error(`Missing required field "${name}" for Book`);
         throw new Error("Missing required property for Book");
       }

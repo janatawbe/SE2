@@ -9,6 +9,10 @@ export class ToyBuilder {
   private batteryRequired!: string;
   private educational!: string;
 
+  public static newBuilder(): ToyBuilder {
+    return new ToyBuilder();
+  }
+
   setType(type: string): ToyBuilder { this.type = type; return this; }
   setAgeGroup(ageGroup: string): ToyBuilder { this.ageGroup = ageGroup; return this; }
   setBrand(brand: string): ToyBuilder { this.brand = brand; return this; }
@@ -27,7 +31,7 @@ export class ToyBuilder {
     ];
 
     for (const [name, value] of required) {
-      if (value === undefined || value === null || value === "") {
+      if (value === undefined || value === null) {
         logger.error(`Missing required field "${name}" for Toy`);
         throw new Error("Missing required property for Toy");
       }
