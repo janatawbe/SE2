@@ -1,5 +1,5 @@
-import { CakeBuilder } from "../src/model/builders/cake.builder";
-import { Cake } from "../src/model/cake.model";
+import { CakeBuilder } from "../../src/model/builders/cake.builder";
+import { Cake } from "../../src/model/cake.model";
 
 function makeValidCakeBuilder() {
   return new CakeBuilder()
@@ -25,8 +25,24 @@ describe("CakeBuilder", () => {
     expect(cake).toBeInstanceOf(Cake);
   });
 
-  it("throws when a required field is missing/empty", () => {
-    const builder = makeValidCakeBuilder().setFlavor("");
+  it("throws when a required field is missing (undefined)", () => {
+    // Don't set flavor → simulate missing required property
+    const builder = new CakeBuilder()
+      .setType("Birthday")
+      // .setFlavor("Vanilla")  <-- intentionally missing
+      .setFilling("Strawberry")
+      .setSize("Medium")
+      .setLayers("2")
+      .setFrostingType("Buttercream")
+      .setFrostingFlavor("Vanilla")
+      .setDecorationType("Sprinkles")
+      .setDecorationColor("Rainbow")
+      .setCustomMessage("Happy Day")
+      .setShape("Round")
+      .setAllergies("None")
+      .setSpecialIngredients("None")
+      .setPackagingType("Box");
+
     expect(() => builder.build()).toThrow("Missing required property for Cake");
   });
 
