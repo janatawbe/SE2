@@ -17,6 +17,10 @@ export class CakeBuilder {
   private specialIngredients!: string;
   private packagingType!: string;
 
+  public static newBuilder(): CakeBuilder {
+    return new CakeBuilder();
+  }
+
   setType(type: string): CakeBuilder { this.type = type; return this; }
   setFlavor(flavor: string): CakeBuilder { this.flavor = flavor; return this; }
   setFilling(filling: string): CakeBuilder { this.filling = filling; return this; }
@@ -51,7 +55,7 @@ export class CakeBuilder {
     ];
 
     for (const [name, value] of required) {
-      if (value === undefined || value === null || value === "") {
+      if (value === undefined || value === null) {
         logger.error(`Missing required field "${name}" for Cake`);
         throw new Error("Missing required property for Cake");
       }

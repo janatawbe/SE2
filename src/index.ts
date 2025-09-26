@@ -1,53 +1,29 @@
-import { CakeBuilder } from "./model/builders/cake.builder";
-import { BookBuilder } from "./model/builders/book.builder";
-import { ToyBuilder } from "./model/builders/toy.builder";
+import { parseCSV } from "./utils/csvParser";
+import { parseJSON } from "./utils/jsonParser";
+import { parseXML } from "./utils/xmlParser";
+import { CSVCakeMapper } from "./mappers/cake.mapper";
+import { JSONBookMapper } from "./mappers/book.mapper";
+import { XMLToyMapper } from "./mappers/toy.mapper";
+import { CSVOrderMapper, JSONOrderMapper, XMLOrderMapper } from "./mappers/order.mapper";
 
-function main() {
-  // Build a Cake
-  const cake = new CakeBuilder()
-    .setType("Birthday")
-    .setFlavor("Vanilla")
-    .setFilling("Strawberry")
-    .setSize("Medium")
-    .setLayers("2")
-    .setFrostingType("Buttercream")
-    .setFrostingFlavor("Vanilla")
-    .setDecorationType("Sprinkles")
-    .setDecorationColor("Rainbow")
-    .setCustomMessage("Happy Birthday!")
-    .setShape("Round")
-    .setAllergies("None")
-    .setSpecialIngredients("None")
-    .setPackagingType("Box")
-    .build();
+async function main() {
+  // CSV Orders (Cakes)
+  const csvRows = await parseCSV("src/data/cake orders.csv");
+  const rows = csvRows[0]?.[0]?.toLowerCase().includes("id") ? csvRows.slice(1) : csvRows;
+  const csvOrders = rows.map(r => new CSVOrderMapper(new CSVCakeMapper()).map(r));
+  console.log("CSV Orders:", csvOrders);
 
-  console.log("Cake built:", cake);
+  // JSON Orders (Books)
+  const jsonData: any = parseJSON<any>("src/data/book orders.json");
+  const list: any[] = Array.isArray(jsonData) ? jsonData : jsonData.orders;
+  const jsonOrders = list.map(o => new JSONOrderMapper(new JSONBookMapper()).map(o));
+  console.log("JSON Orders:", jsonOrders);
 
-  // Build a Book
-  const book = new BookBuilder()
-    .setTitle("Dune")
-    .setAuthor("Frank Herbert")
-    .setGenre("Sci-Fi")
-    .setFormat("Hardcover")
-    .setLanguage("EN")
-    .setPublisher("Chilton")
-    .setSpecialEdition("None")
-    .setPackaging("Shrinkwrap")
-    .build();
-
-  console.log("Book built:", book);
-
-  // Build a Toy
-  const toy = new ToyBuilder()
-    .setType("Robot")
-    .setAgeGroup("6+")
-    .setBrand("RoboCo")
-    .setMaterial("Plastic")
-    .setBatteryRequired("Yes")
-    .setEducational("STEM")
-    .build();
-
-  console.log("Toy built:", toy);
+  // XML Orders (Toys)
+  const xmlData: any = parseXML<any>("src/data/toy orders.xml");
+  const xmlRows: any[] = Array.isArray(xmlData?.data?.row) ? xmlData.data.row : [xmlData.data.row];
+  const xmlOrders = xmlRows.map(r => new XMLOrderMapper(new XMLToyMapper()).map(r));
+  console.log("XML Orders:", xmlOrders);
 }
 
 main();
