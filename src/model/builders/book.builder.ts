@@ -1,5 +1,5 @@
-import logger from "../../utils/logger";
-import { Book } from "../book.model";
+import logger from "../../util/logger";
+import { Book, IdentifiableBook } from "../book.model";
 
 export class BookBuilder {
   private title!: string;
@@ -56,6 +56,37 @@ export class BookBuilder {
       this.publisher,
       this.specialEdition,
       this.packaging
+    );
+  }
+}
+
+export class IdentifiableBookBuilder {
+  private id!: string;
+  private book!: Book;
+
+  static newBuilder(): IdentifiableBookBuilder {
+    return new IdentifiableBookBuilder();
+  }
+
+  setId(id: string): IdentifiableBookBuilder { this.id = id; return this; }
+  setBook(book: Book): IdentifiableBookBuilder { this.book = book; return this; }
+
+  build(): IdentifiableBook {
+    if (!this.id || !this.book) {
+      logger.error("Missing required property for IdentifiableBook");
+      throw new Error("Missing required property for IdentifiableBook");
+    }
+
+    return new IdentifiableBook(
+      this.id,
+      this.book.getTitle(),
+      this.book.getAuthor(),
+      this.book.getGenre(),
+      this.book.getFormat(),
+      this.book.getLanguage(),
+      this.book.getPublisher(),
+      this.book.getSpecialEdition(),
+      this.book.getPackaging()
     );
   }
 }

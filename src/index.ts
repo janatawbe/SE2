@@ -1,29 +1,138 @@
-import { parseCSV } from "./utils/csvParser";
-import { parseJSON } from "./utils/jsonParser";
-import { parseXML } from "./utils/xmlParser";
-import { CSVCakeMapper } from "./mappers/cake.mapper";
-import { JSONBookMapper } from "./mappers/book.mapper";
-import { XMLToyMapper } from "./mappers/toy.mapper";
-import { CSVOrderMapper, JSONOrderMapper, XMLOrderMapper } from "./mappers/order.mapper";
+import logger from "./util/logger";
+import { PostgresConnection } from "./repository/postgres/PostgresConnection";
+import { OrderRepository } from "./repository/postgres/order.repository";  // Your Postgres order repo
+import { CakeRepository } from "./repository/postgres/cake.repository";    // Postgres cake repo
+import { BookRepository } from "./repository/postgres/book.repository";    // Postgres book repo
+import { ToyRepository } from "./repository/postgres/toy.repository";      // Postgres toy repo
+
+import { CakeBuilder, IdentifiableCakeBuilder } from "./model/builders/cake.builder";
+import { BookBuilder, IdentifiableBookBuilder } from "./model/builders/book.builder";
+import { ToyBuilder, IdentifiableToyBuilder } from "./model/builders/toy.builder";
+import { OrderBuilder, IdentifiableOrderItemBuilder } from "./model/builders/order.builder";
 
 async function main() {
-  // CSV Orders (Cakes)
-  const csvRows = await parseCSV("src/data/cake orders.csv");
-  const rows = csvRows[0]?.[0]?.toLowerCase().includes("id") ? csvRows.slice(1) : csvRows;
-  const csvOrders = rows.map(r => new CSVOrderMapper(new CSVCakeMapper()).map(r));
-  console.log("CSV Orders:", csvOrders);
+  await PostgresConnection.init();
+  // Initialize repositories
+  const cakeRepo = new CakeRepository();
+  const bookRepo = new BookRepository();
+  const toyRepo = new ToyRepository();
 
-  // JSON Orders (Books)
-  const jsonData: any = parseJSON<any>("src/data/book orders.json");
-  const list: any[] = Array.isArray(jsonData) ? jsonData : jsonData.orders;
-  const jsonOrders = list.map(o => new JSONOrderMapper(new JSONBookMapper()).map(o));
-  console.log("JSON Orders:", jsonOrders);
+  // Pass item repository dynamically to order repository
+  // For demo, create separate order repos per item type:
+  const cakeOrderRepo = new OrderRepository(cakeRepo);
+  const bookOrderRepo = new OrderRepository(bookRepo);
+  const toyOrderRepo = new OrderRepository(toyRepo);
 
-  // XML Orders (Toys)
-  const xmlData: any = parseXML<any>("src/data/toy orders.xml");
-  const xmlRows: any[] = Array.isArray(xmlData?.data?.row) ? xmlData.data.row : [xmlData.data.row];
-  const xmlOrders = xmlRows.map(r => new XMLOrderMapper(new XMLToyMapper()).map(r));
-  console.log("XML Orders:", xmlOrders);
+  await Promise.all([cakeRepo.init(), bookRepo.init(), toyRepo.init()]);
+
+  await Promise.all([cakeOrderRepo.init(), bookOrderRepo.init(), toyOrderRepo.init()]);
+
+  // --- Create sample Cake Order ---
+  const cake = CakeBuilder.newBuilder()
+    .setType("Birthday")
+    .setFlavor("Chocolate")
+    .setFilling("Vanilla")
+    .setSize("Medium")
+    .setLayers("2")
+    .setFrostingType("Buttercream")
+    .setFrostingFlavor("Chocolate")
+    .setDecorationType("Sprinkles")
+    .setDecorationColor("Rainbow")
+    .setCustomMessage("Happy Birthday!")
+    .setShape("Round")
+    .setAllergies("None")
+    .setSpecialIngredients("None")
+    .setPackagingType("Box")
+    .build();
+
+  const idCake = IdentifiableCakeBuilder.newBuilder()
+    .setId("cake-17")
+    .setCake(cake)
+    .build();
+
+  const cakeOrder = OrderBuilder.newBuilder()
+    .setId("order-1001")
+    .setItem(idCake)
+    .setPrice(50)
+    .setQuantity(1)
+    .build();
+
+  const identifiableCakeOrder = IdentifiableOrderItemBuilder.newBuilder()
+    .setOrder(cakeOrder)
+    .setItem(idCake)
+    .build();
+
+  await cakeOrderRepo.create(identifiableCakeOrder);
+
+  // --- Create sample Book Order ---
+  const book = BookBuilder.newBuilder()
+    .setTitle("The Great Gatsby")
+    .setAuthor("F. Scott Fitzgerald")
+    .setGenre("Novel")
+    .setFormat("Hardcover")
+    .setLanguage("English")
+    .setPublisher("Scribner")
+    .setSpecialEdition("Yes")
+    .setPackaging("Standard")
+    .build();
+
+  const idBook = IdentifiableBookBuilder.newBuilder()
+    .setId("book-42")
+    .setBook(book)
+    .build();
+
+  const bookOrder = OrderBuilder.newBuilder()
+    .setId("order-2002")
+    .setItem(idBook)
+    .setPrice(25)
+    .setQuantity(2)
+    .build();
+
+  const identifiableBookOrder = IdentifiableOrderItemBuilder.newBuilder()
+    .setOrder(bookOrder)
+    .setItem(idBook)
+    .build();
+
+  await bookOrderRepo.create(identifiableBookOrder);
+
+  // --- Create sample Toy Order ---
+  const toy = ToyBuilder.newBuilder()
+    .setType("Action Figure")
+    .setAgeGroup("8+")
+    .setBrand("FunToys")
+    .setMaterial("Plastic")
+    .setBatteryRequired("No")
+    .setEducational("No")
+    .build();
+
+  const idToy = IdentifiableToyBuilder.newBuilder()
+    .setId("toy-99")
+    .setToy(toy)
+    .build();
+
+  const toyOrder = OrderBuilder.newBuilder()
+    .setId("order-3003")
+    .setItem(idToy)
+    .setPrice(35)
+    .setQuantity(1)
+    .build();
+
+  const identifiableToyOrder = IdentifiableOrderItemBuilder.newBuilder()
+    .setOrder(toyOrder)
+    .setItem(idToy)
+    .build();
+
+  await toyOrderRepo.create(identifiableToyOrder);
+
+  // --- Fetch and log all orders for each repository ---
+  console.log("Cake Orders:", await cakeOrderRepo.getAll());
+  console.log("Book Orders:", await bookOrderRepo.getAll());
+  console.log("Toy Orders:", await toyOrderRepo.getAll());
+
+  logger.info("All sample orders created and retrieved successfully.");
 }
 
-main();
+main().catch((err) => {
+  logger.error("Fatal error in main:", err);
+  process.exit(1);
+});

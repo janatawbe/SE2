@@ -1,5 +1,5 @@
 import fs from "fs";
-import logger from "./logger";
+import logger from "../util/logger";
 
 export function parseJSON<T = unknown>(filePath: string): T {
   try {

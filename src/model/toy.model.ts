@@ -1,4 +1,5 @@
-import { IItem, ItemCategory } from "./IItem";
+import { IIdentifiableItem, IItem, ItemCategory } from "./IItem";
+import { id } from "repository/IRepository";
 
 export class Toy implements IItem {
     private type: string;
@@ -45,5 +46,23 @@ export class Toy implements IItem {
     }
     getEducational(): string {
         return this.educational;
+    }
+}
+
+export class IdentifiableToy extends Toy implements IIdentifiableItem {
+    constructor(
+        private toyId: id,
+        type: string,
+        ageGroup: string,
+        brand: string,
+        material: string,
+        batteryRequired: string,
+        educational: string
+    ) {
+        super(type, ageGroup, brand, material, batteryRequired, educational);
+    }
+
+    getId(): id {
+        return this.toyId;
     }
 }

@@ -1,5 +1,5 @@
-import { CSVCakeMapper } from "../src/mappers/cake.mapper";
-import { Cake } from "../src/model/cake.model";
+import { CSVCakeMapper } from "../../src/mappers/cake.mapper";
+import { Cake } from "../../src/model/cake.model";
 
 describe("CSVCakeMapper", () => {
   const rowOk = [
@@ -21,9 +21,9 @@ describe("CSVCakeMapper", () => {
     expect(() => new CSVCakeMapper().map(bad)).toThrow("Malformed CSV row for Cake");
   });
 
-  it("throws when a required field is empty (builder check)", () => {
+  it("throws when a required field is missing (builder check)", () => {
     const bad = [...rowOk];
-    bad[2] = ""; // flavor empty
-    expect(() => new CSVCakeMapper().map(bad)).toThrow(); // builder's error message
+    bad[2] = undefined as any; // flavor missing instead of empty string
+    expect(() => new CSVCakeMapper().map(bad)).toThrow("Missing required property for Cake");
   });
 });
